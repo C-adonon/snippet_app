@@ -1,0 +1,27 @@
+{
+  "name": "prisma-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^4.6.0",
+    "bcrypt": "^5.1.0",
+    "cors": "^2.8.5",
+    "ejs": "^3.1.8",
+    "express": "^4.18.2",
+    "express-jwt": "^8.3.0",
+    "express-router": "^0.0.1",
+    "http-errors": "^2.0.0",
+    "mysql": "^2.18.1",
+    "nodemon": "^2.0.20",
+    "prisma": "^4.6.0",
+    "zod": "^3.20.2"
+  }
+}
