@@ -4,6 +4,7 @@ import cors from "cors";
 import user from "./routes/user.js";
 import category from "./routes/category.js";
 import tags from "./routes/tags.js";
+import snippet from "./routes/snippet.js";
 
 // initialize app
 const app = express();
@@ -22,7 +23,7 @@ app.use(express.urlencoded({ extended: true })); // for parsing application/x-ww
 app.use("/user", user);
 app.use("/category", category);
 app.use("/tags", tags);
-// app.use("/snippet", snippet);
+app.use("/snippet", snippet);
 
 // Middlewear d'erreurs
 app.use((err, req, res, next) => {
