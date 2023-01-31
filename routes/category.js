@@ -123,7 +123,7 @@ router.delete("/:id([0-9]+)", auth, async (req, res, next) => {
     return next(createHttpError(400, "This category does not exist."));
 
   // Supprime la catégorie
-  const deletcategory = await prisma.categories.delete({
+  const deletCategory = await prisma.categories.delete({
     where: {
       id: category_id,
     },
