@@ -42,7 +42,7 @@ router.post("/", auth, async (req, res, next) => {
   await prisma.tags.create({
     data: {
       name: newTag.name,
-      usersId: currentUserId,
+      usersId: { connect: { id: currentUserId } },
     },
   });
   res.json({ message: "Tag successfully created!" });
@@ -102,4 +102,29 @@ router.get("/", auth, async (req, res, next) => {
   res.json(tags);
 });
 
+//
+// SUPPRESSION DES TAGS
+//
+
+router.delete("/:id([0-9]+)", auth, async (req, res, next) => {
+  const tag_id = parseInt(req.params.id);
+  const currentUserId = req.auth.id;
+
+  // Vérifie si la catégorie existe
+  const tag = await prisma.tags.findFirst({
+    where: {
+      id: tag_id,
+      usersId: currentUserId,
+    },
+  });
+  if (!tag) return next(createHttpError(400, "This tag does not exist."));
+
+  // Supprime la catégorie
+  const deletTag = await prisma.tags.delete({
+    where: {
+      id: tag_id,
+    },
+  });
+  res.json({ message: "Tag successfully deleted!" });
+});
 export default router;
