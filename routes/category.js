@@ -33,7 +33,7 @@ router.post("/", auth, async (req, res, next) => {
   const category = await prisma.categories.findFirst({
     where: {
       name: newCategory.name,
-      usersId: id,
+      usersId: { connect: { id: id } },
     },
   });
   if (category)
@@ -43,7 +43,7 @@ router.post("/", auth, async (req, res, next) => {
   await prisma.categories.create({
     data: {
       name: newCategory.name,
-      usersId: id,
+      usersId: { connect: { id: id } },
     },
   });
   res.json({ message: "Category successfully created!" });
@@ -56,7 +56,7 @@ router.post("/", auth, async (req, res, next) => {
 router.patch("/:id", auth, async (req, res, next) => {
   const category_id = parseInt(req.params);
   const user_id = req.auth.id;
-  
+
   let modifiedCategory;
 
   // Validation zod + récupère les informations à modifier
@@ -71,7 +71,7 @@ router.patch("/:id", auth, async (req, res, next) => {
     where: {
       id: category_id,
       name: modifiedCategory.name,
-      usersId: user_id,
+      usersId: { connect: { id: user_id } },
     },
   });
   if (category)

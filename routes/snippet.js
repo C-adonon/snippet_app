@@ -2,7 +2,6 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 import { credentialsValidator } from "../validators/credentialsValidator.js";
-import { editedInfoValidator } from "../validators/editedInfoValidator.js";
 import createHttpError from "http-errors";
 import bcrypt from "bcrypt";
 import { expressjwt } from "express-jwt";
@@ -17,5 +16,7 @@ const auth = expressjwt({
 });
 
 router.get("/all", auth, async (req, res, next) => {});
+
+
 
 export default router;
