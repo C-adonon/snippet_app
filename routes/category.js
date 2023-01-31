@@ -50,7 +50,7 @@ router.post("/", auth, async (req, res, next) => {
 });
 
 //
-// CREATION DE CATEGORIE
+// MODIFICATION DES CATEGORIES
 //
 
 router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
