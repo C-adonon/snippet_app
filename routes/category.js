@@ -54,7 +54,7 @@ router.post("/", auth, async (req, res, next) => {
 //
 
 router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
-  const category_id = parseInt(req.params);
+  const category_id = parseInt(req.params.id);
   const currentUserId = req.auth.id;
 
   let modifiedCategory;
@@ -102,6 +102,33 @@ router.get("/", auth, async (req, res, next) => {
     },
   });
   res.json(categories);
+});
+
+//
+// SUPPRESSION DES CATEGORIES
+//
+
+router.delete("/:id([0-9]+)", auth, async (req, res, next) => {
+  const category_id = parseInt(req.params.id);
+  const currentUserId = req.auth.id;
+
+  // Vérifie si la catégorie existe
+  const category = await prisma.categories.findFirst({
+    where: {
+      id: category_id,
+      usersId: currentUserId,
+    },
+  });
+  if (!category)
+    return next(createHttpError(400, "This category does not exist."));
+
+  // Supprime la catégorie
+  const deletcategory = await prisma.categories.delete({
+    where: {
+      id: category_id,
+    },
+  });
+  res.json({ message: "Category successfully deleted!" });
 });
 
 export default router;
