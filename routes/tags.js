@@ -86,4 +86,20 @@ router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
   res.json({ message: "Tag successfully modified!" });
 });
 
+//
+// LISTE LES TAGS
+//
+
+router.get("/", auth, async (req, res, next) => {
+  const currentUserId = req.auth.id;
+
+  // Récupère toutes les catégories de l'utilisateur
+  const tags = await prisma.tags.findMany({
+    where: {
+      usersId: currentUserId,
+    },
+  });
+  res.json(tags);
+});
+
 export default router;
