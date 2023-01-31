@@ -19,7 +19,7 @@ const auth = expressjwt({
 
 router.post("/", auth, async (req, res, next) => {
   // Stocke l'id du user de la session
-  const id = req.auth.id;
+  const currentUserId = req.auth.id;
 
   // Validation zod + Récupère l'id user + le nom de la catégorie
   let newCategory;
@@ -33,7 +33,7 @@ router.post("/", auth, async (req, res, next) => {
   const category = await prisma.categories.findFirst({
     where: {
       name: newCategory.name,
-      usersId: { connect: { id: id } },
+      usersId: currentUserId,
     },
   });
   if (category)
@@ -43,7 +43,7 @@ router.post("/", auth, async (req, res, next) => {
   await prisma.categories.create({
     data: {
       name: newCategory.name,
-      usersId: { connect: { id: id } },
+      usersId: currentUserId,
     },
   });
   res.json({ message: "Category successfully created!" });
@@ -53,9 +53,9 @@ router.post("/", auth, async (req, res, next) => {
 // CREATION DE CATEGORIE
 //
 
-router.patch("/:id", auth, async (req, res, next) => {
+router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
   const category_id = parseInt(req.params);
-  const user_id = req.auth.id;
+  const currentUserId = req.auth.id;
 
   let modifiedCategory;
 
@@ -67,24 +67,41 @@ router.patch("/:id", auth, async (req, res, next) => {
   }
 
   // Vérifie s'il existe déja une catégorie avec le même nom
+  // Si oui erreur sinon on continue
   const category = await prisma.categories.findFirst({
     where: {
       id: category_id,
       name: modifiedCategory.name,
-      usersId: { connect: { id: user_id } },
+      usersId: currentUserId,
     },
   });
   if (category)
     return next(createHttpError(400, "This category already exists."));
 
-  // Met à jour la BDD
-  const editedCategory = await prisma.categories.update({
+  // Met à jour la BDD et modifie la catégorie
+  const editCategory = await prisma.categories.update({
     where: {
       id: category_id,
     },
     data: modifiedCategory,
   });
   res.json({ message: "Category successfully modified!" });
+});
+
+//
+// LISTE LES CATEGORIES
+//
+
+router.get("/", auth, async (req, res, next) => {
+  const currentUserId = req.auth.id;
+
+  // Récupère toutes les catégories de l'utilisateur
+  const categories = await prisma.categories.findMany({
+    where: {
+      usersId: currentUserId,
+    },
+  });
+  res.json(categories);
 });
 
 export default router;
