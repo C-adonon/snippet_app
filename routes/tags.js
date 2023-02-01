@@ -33,7 +33,7 @@ router.post("/", auth, async (req, res, next) => {
   const tag = await prisma.tags.findFirst({
     where: {
       name: newTag.name,
-      user_id: currentUserId,
+      usersId: currentUserId,
     },
   });
   if (tag) return next(createHttpError(400, "This tag already exists."));
@@ -48,10 +48,10 @@ router.post("/", auth, async (req, res, next) => {
   res.json({ message: "Tag successfully created!" });
 });
 
+
 //
 // MODIFICATION DES TAGS
 //
-
 router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
   const tag_id = parseInt(req.params.id);
   const currentUserId = req.auth.id;
@@ -96,10 +96,10 @@ router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
   res.json({ message: "Tag successfully modified!" });
 });
 
+
 //
 // LISTE LES TAGS
 //
-
 router.get("/", auth, async (req, res, next) => {
   const currentUserId = req.auth.id;
 
@@ -112,10 +112,10 @@ router.get("/", auth, async (req, res, next) => {
   res.json(tags);
 });
 
+
 //
 // SUPPRESSION DES TAGS
 //
-
 router.delete("/:id([0-9]+)", auth, async (req, res, next) => {
   const tag_id = parseInt(req.params.id);
   const currentUserId = req.auth.id;
