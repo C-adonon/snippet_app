@@ -13,10 +13,10 @@ const auth = expressjwt({
   algorithms: ["HS256"],
 });
 
+
 //
 // CREATION DE CATEGORIE
 //
-
 router.post("/", auth, async (req, res, next) => {
   // Stocke l'id du user de la session
   const currentUserId = req.auth.id;
@@ -43,16 +43,16 @@ router.post("/", auth, async (req, res, next) => {
   await prisma.categories.create({
     data: {
       name: newCategory.name,
-      usersId: currentUserId,
+      user_id: { connect: { id: currentUserId } },
     },
   });
   res.json({ message: "Category successfully created!" });
 });
 
+
 //
 // MODIFICATION DES CATEGORIES
 //
-
 router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
   const category_id = parseInt(req.params.id);
   const currentUserId = req.auth.id;
@@ -65,6 +65,16 @@ router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
   } catch (error) {
     return res.status(400).json({ errors: error.issues });
   }
+
+  // Vérifie si la catégorie existe
+  const checkCategory = await prisma.categories.findFirst({
+    where: {
+      id: category_id,
+      usersId: currentUserId,
+    },
+  });
+  if (!checkCategory)
+    return next(createHttpError(400, "This category does not exist."));
 
   // Vérifie s'il existe déja une catégorie avec le même nom
   // Si oui erreur sinon on continue
@@ -88,10 +98,10 @@ router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
   res.json({ message: "Category successfully modified!" });
 });
 
+
 //
 // LISTE LES CATEGORIES
 //
-
 router.get("/", auth, async (req, res, next) => {
   const currentUserId = req.auth.id;
 
@@ -104,10 +114,10 @@ router.get("/", auth, async (req, res, next) => {
   res.json(categories);
 });
 
+
 //
 // SUPPRESSION DES CATEGORIES
 //
-
 router.delete("/:id([0-9]+)", auth, async (req, res, next) => {
   const category_id = parseInt(req.params.id);
   const currentUserId = req.auth.id;
@@ -123,7 +133,7 @@ router.delete("/:id([0-9]+)", auth, async (req, res, next) => {
     return next(createHttpError(400, "This category does not exist."));
 
   // Supprime la catégorie
-  const deletCategory = await prisma.categories.delete({
+  const deleteCategory = await prisma.categories.delete({
     where: {
       id: category_id,
     },
