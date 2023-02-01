@@ -33,7 +33,7 @@ router.post("/", auth, async (req, res, next) => {
   const tag = await prisma.tags.findFirst({
     where: {
       name: newTag.name,
-      usersId: currentUserId,
+      user_id: currentUserId,
     },
   });
   if (tag) return next(createHttpError(400, "This tag already exists."));
@@ -42,7 +42,7 @@ router.post("/", auth, async (req, res, next) => {
   await prisma.tags.create({
     data: {
       name: newTag.name,
-      usersId: { connect: { id: currentUserId } },
+      user_id: { connect: { id: currentUserId } },
     },
   });
   res.json({ message: "Tag successfully created!" });
@@ -64,6 +64,16 @@ router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
   } catch (error) {
     return res.status(400).json({ errors: error.issues });
   }
+
+  // Vérifie si le tag existe
+  // Si non erreur sinon on continue
+  const checkTag = await prisma.tags.findFirst({
+    where: {
+      id: tag_id,
+      usersId: currentUserId,
+    },
+  });
+  if (!tag) return next(createHttpError(400, "This tag doesn't exist."));
 
   // Vérifie s'il existe déja une catégorie avec le même nom
   // Si oui erreur sinon on continue
@@ -93,7 +103,7 @@ router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
 router.get("/", auth, async (req, res, next) => {
   const currentUserId = req.auth.id;
 
-  // Récupère toutes les catégories de l'utilisateur
+  // Récupère tous les tags de l'utilisateur
   const tags = await prisma.tags.findMany({
     where: {
       usersId: currentUserId,
@@ -110,7 +120,8 @@ router.delete("/:id([0-9]+)", auth, async (req, res, next) => {
   const tag_id = parseInt(req.params.id);
   const currentUserId = req.auth.id;
 
-  // Vérifie si la catégorie existe
+  // Vérifie si le tag existe
+  // Si non erreur sinon on continue
   const tag = await prisma.tags.findFirst({
     where: {
       id: tag_id,
@@ -119,7 +130,7 @@ router.delete("/:id([0-9]+)", auth, async (req, res, next) => {
   });
   if (!tag) return next(createHttpError(400, "This tag does not exist."));
 
-  // Supprime la catégorie
+  // Supprime le tag
   const deletTag = await prisma.tags.delete({
     where: {
       id: tag_id,
