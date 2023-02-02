@@ -23,13 +23,14 @@ model Users {
 
 model Snippets {
   id           Int        @id @default(autoincrement())
+  title        String     @db.VarChar(255)
   content      String?    @db.Text
   created_at   DateTime   @default(now())
   user_id      Users      @relation(fields: [usersId], references: [id])
   usersId      Int
   category_id  Categories @relation(fields: [categoriesId], references: [id])
   categoriesId Int
-  Tags         Tags[]
+  tags         Tags[]
 }
 
 model Categories {
