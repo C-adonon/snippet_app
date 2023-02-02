@@ -15,6 +15,7 @@ model Users {
   email      String       @unique
   password   String
   photo      String?      @db.VarChar(255)
+  updated_at DateTime?    @default(now())
   created_at DateTime     @default(now())
   Snippets   Snippets[]
   Categories Categories[]
@@ -22,11 +23,12 @@ model Users {
 }
 
 model Snippets {
-  id           Int        @id @default(autoincrement())
-  title        String     @db.VarChar(255)
-  content      String?    @db.Text
-  created_at   DateTime   @default(now())
-  user_id      Users      @relation(fields: [usersId], references: [id])
+  id           Int         @id @default(autoincrement())
+  title        String      @db.VarChar(255)
+  content      String?     @db.Text
+  created_at   DateTime    @default(now())
+  updated_at   DateTime?   @default(now())
+  user_id      Users       @relation(fields: [usersId], references: [id])
   usersId      Int
   category_id  Categories? @relation(fields: [categoriesId], references: [id])
   categoriesId Int?
