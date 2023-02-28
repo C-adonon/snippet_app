@@ -1,9 +1,11 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
+import { modifiedSnippetValidator } from "../validators/modifiedSnippetValidator.js";
 import { snippetValidator } from "../validators/snippetValidator.js";
 import createHttpError from "http-errors";
 import { expressjwt } from "express-jwt";
+import { snippetPagination } from "../utils/pagination.js";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -87,6 +89,7 @@ router.post("/", auth, async (req, res, next) => {
 //
 // MODIFICATION DES SNIPPETS
 //
+
 router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
   const snippet_id = parseInt(req.params.id);
   const currentUserId = req.auth.id;
@@ -94,7 +97,7 @@ router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
 
   // Validation zod + Récupère des datas à mofifier dans le snippet
   try {
-    modifiedSnippet = snippetValidator.parse(req.body);
+    modifiedSnippet = modifiedSnippetValidator.parse(req.body);
   } catch (error) {
     return res.status(400).json({ errors: error.issues });
   }
@@ -109,23 +112,140 @@ router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
   if (!checkSnippet)
     return next(createHttpError(404, "This snippet does not exist!"));
 
-  // Met à jour la BDD et modifie le snippet
-  const editSnippet = await prisma.snippets.update({
+  // Vérifie que le champs categorie existe lorsque l'on change la catégorie du snippet
+  const checkCategory = await prisma.categories.findFirst({
+    where: {
+      id: modifiedSnippet.category_id,
+    },
+  });
+  if (!checkCategory)
+    return next(
+      createHttpError(404, "The category you are looking for does not exist!")
+    );
+
+  // Vérifie que tous les champs tags existe lorsque l'on change les tags du snippet
+  if (modifiedSnippet.tags !== undefined) {
+    // Vérifie si tous les tags dans snippet.tags existent tous dans la BDD
+    const checkTags = await prisma.tags.findMany({
+      where: {
+        id: {
+          in: modifiedSnippet.tags,
+        },
+      },
+    });
+    if (checkTags.length !== modifiedSnippet.tags.length)
+      return next(
+        createHttpError(
+          404,
+          "One or more tags you are looking for does not exist!"
+        )
+      );
+  }
+
+  // Vérifie que le champs titre ne soit pas vide lorsque l'on change le titre du snippet
+  if (modifiedSnippet.title !== undefined) {
+    if (modifiedSnippet.title === "")
+      return next(createHttpError(400, "You must provide a valid title!"));
+  }
+
+  // 
+  let connectOptions = {};
+
+  if (modifiedSnippet.category_id) {
+    connectOptions["category_id"] = {
+      connect: {
+        id: modifiedSnippet.category_id,
+      },
+    };
+  }
+
+  if (modifiedSnippet.tags) {
+    connectOptions["tags"] = {
+      set: modifiedSnippet.tags.map((id) => {
+        return { id };
+      }),
+    };
+  }
+
+  // Update les tags du snippet en fonction des données reçues
+  const updateSnippetTags = await prisma.snippets.update({
     where: {
       id: snippet_id,
     },
-    data: modifiedSnippet,
+    data: {
+      title: modifiedSnippet.title,
+      content: modifiedSnippet.content,
+      updated_at: new Date(),
+      ...connectOptions,
+    },
   });
-  res.json({ message: "Snippet successfully modified!" });
+  res.json({ updateSnippetTags, message: "Snippet successfully modified!" });
 });
+
 
 //
 // LISTE LES SNIPPETS
 //
-router.get("/", auth, async (req, res, next) => {});
+
+// Gets all the snippets of the currents user
+router.get("/", auth, async (req, res, next) => {
+  const currentUserId = req.auth.id;
+  const snippets = await prisma.snippets.findMany({
+    where: {
+      usersId: currentUserId,
+    },
+    include: {
+      tags: true,
+      category_id: true,
+    },
+  });
+  res.json(snippets);
+});
+
+// Gets a specified snippets
+router.get("/:id([0-9]+)", auth, async (req, res, next) => {
+  const currentUserId = req.auth.id;
+  const snippet_id = parseInt(req.params.id);
+  // Récupérer le snippet
+  const checkSnippet = await prisma.snippets.findFirst({
+    where: {
+      id: snippet_id,
+      usersId: currentUserId,
+    },
+    include: {
+      tags: true,
+      category_id: true,
+    },
+  });
+  if (!checkSnippet)
+    return next(createHttpError(404, "This snippet does not exist!"));
+  res.json(checkSnippet);
+});
+
 
 //
 // SUPPRESSION DES SNIPPETS
 //
-router.delete("/:id([0-9]+)", auth, async (req, res, next) => {});
+router.delete("/:id([0-9]+)", auth, async (req, res, next) => {
+  const snippet_id = parseInt(req.params.id);
+  const currentUserId = req.auth.id;
+
+  // Vérifie si le snippet existe
+  const checkSnippet = await prisma.snippets.findFirst({
+    where: {
+      id: snippet_id,
+      usersId: currentUserId,
+    },
+  });
+  if (!checkSnippet)
+    return next(createHttpError(404, "This snippet does not exist!"));
+
+  // Supprime le snippet
+  const deleteSnippet = await prisma.snippets.delete({
+    where: {
+      id: snippet_id,
+    },
+  });
+  res.json({ message: "Snippet successfully deleted!" });
+});
 export default router;
