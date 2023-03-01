@@ -73,7 +73,7 @@ router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
       usersId: currentUserId,
     },
   });
-  if (!tag) return next(createHttpError(400, "This tag doesn't exist."));
+  if (!checkTag) return next(createHttpError(400, "This tag doesn't exist."));
 
   // Vérifie s'il existe déja une catégorie avec le même nom
   // Si oui erreur sinon on continue
