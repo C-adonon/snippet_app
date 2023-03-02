@@ -7,13 +7,7 @@ import tags from "./routes/tags.js";
 import snippet from "./routes/snippet.js";
 
 // initialize app
-const app = express();
-
-// port parameter, used at the end
-const port = 3000;
-
-// CORS
-app.use(cors({}));
+export const app = express();
 
 // for parsing application/json
 app.use(express.json());
@@ -36,9 +30,4 @@ app.use((err, req, res, next) => {
   }
   // autres erreurs à gérer
   return res.status(err.status).json({ error: err.message });
-});
-
-// run the server
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
 });
