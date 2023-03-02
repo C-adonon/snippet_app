@@ -1,10 +1,9 @@
 // import express
 import express from "express";
-import cors from "cors";
 import user from "./routes/user.js";
-import category from "./routes/category.js";
+import categories from "./routes/categories.js";
 import tags from "./routes/tags.js";
-import snippet from "./routes/snippet.js";
+import snippets from "./routes/snippets.js";
 
 // initialize app
 export const app = express();
@@ -15,9 +14,9 @@ app.use(express.urlencoded({ extended: true })); // for parsing application/x-ww
 
 // Router
 app.use("/user", user);
-app.use("/category", category);
+app.use("/categories", categories);
 app.use("/tags", tags);
-app.use("/snippet", snippet);
+app.use("/snippets", snippets);
 
 // Middlewear d'erreurs
 app.use((err, req, res, next) => {
