@@ -54,7 +54,7 @@ router.post("/", auth, async (req, res, next) => {
     return next(
       createHttpError(
         404,
-        "One or more tags you are looking for does not exist!"
+        "One or more tags you are looking for does not exist, please create the tag before adding it !"
       )
     );
 
@@ -66,7 +66,10 @@ router.post("/", auth, async (req, res, next) => {
   });
   if (!checkCategory)
     return next(
-      createHttpError(404, "The category you are looking for does not exist!")
+      createHttpError(
+        404,
+        "The category you are looking for does not exist, please create the category before adding it !"
+      )
     );
 
   // Crée un snippet à partir des données reçues et envoie dans la BDD
@@ -148,7 +151,7 @@ router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
       return next(createHttpError(400, "You must provide a valid title!"));
   }
 
-  // 
+  // connectOptions
   let connectOptions = {};
 
   if (modifiedSnippet.category_id) {
@@ -182,24 +185,14 @@ router.patch("/:id([0-9]+)", auth, async (req, res, next) => {
   res.json({ updateSnippetTags, message: "Snippet successfully modified!" });
 });
 
-
 //
 // LISTE LES SNIPPETS
 //
 
 // Gets all the snippets of the currents user
-router.get("/", auth, async (req, res, next) => {
+router.get("/", auth, async (req, res) => {
   const currentUserId = req.auth.id;
-  const snippets = await prisma.snippets.findMany({
-    where: {
-      usersId: currentUserId,
-    },
-    include: {
-      tags: true,
-      category_id: true,
-    },
-  });
-  res.json(snippets);
+  snippetPagination(currentUserId, req, res, prisma);
 });
 
 // Gets a specified snippets
@@ -221,7 +214,6 @@ router.get("/:id([0-9]+)", auth, async (req, res, next) => {
     return next(createHttpError(404, "This snippet does not exist!"));
   res.json(checkSnippet);
 });
-
 
 //
 // SUPPRESSION DES SNIPPETS
