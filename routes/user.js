@@ -135,7 +135,10 @@ router.patch("/", auth, async (req, res, next) => {
     where: {
       id: id,
     },
-    data: editedInfo,
+    data: {
+      ...editedInfo,
+      updated_at: new Date(),
+    },
   });
 
   res.json({ message: "Account successfully modified!" });
