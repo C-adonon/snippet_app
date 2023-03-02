@@ -66,10 +66,10 @@ router.post("/", auth, async (req, res, next) => {
   });
   if (!checkCategory)
     return next(
-      createHttpError(
-        404,
-        "The category you are looking for does not exist, please create the category before adding it !"
-      )
+      createHttpError(404, {
+        message:
+          "The category you are looking for does not exist, please create the category before adding it !",
+      })
     );
 
   // Crée un snippet à partir des données reçues et envoie dans la BDD
