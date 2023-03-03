@@ -104,7 +104,7 @@ router.post("/login", async (req, res, next) => {
       process.env["JWT_KEY"],
       // durée du token
       {
-        expiresIn: "1000m",
+        expiresIn: "30m",
       }
     ),
   });
